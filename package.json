@@ -1,0 +1,37 @@
+{
+  "name": "server_worker",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "prestart": "npm install",
+    "start": "forever server.js",
+    "watch": "forever -w server.js",
+    "lint": "eslint ."
+  },
+  "author": "coursar",
+  "license": "ISC",
+  "dependencies": {
+    "@faker-js/faker": "^8.4.1",
+    "@koa/cors": "^3.1.0",
+    "forever": "^3.0.4",
+    "http-event-stream": "^0.2.0",
+    "koa": "^2.13.1",
+    "koa-body": "^4.2.0",
+    "koa-combine-routers": "^4.0.2",
+    "koa-delay": "^0.0.2",
+    "koa-slow": "^2.1.0",
+    "koa-router": "^10.0.0",
+    "koa-static": "^5.0.0",
+    "uuid": "^8.3.2",
+    "ws": "^7.4.2"
+  },
+  "engines": {
+    "node": "16.x"
+  },
+  "devDependencies": {
+    "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-plugin-import": "^2.29.1"
+  }
+}
