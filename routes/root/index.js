@@ -10,14 +10,16 @@ const router = new Router(); // создали роутер
 //   ctx.response.body = dataBase.getDataBase();  
 // });
 
-router.post('/', (ctx) => {
-  console.log('POST запрос на сервер от:', ctx.request.header.referer); // показать url источника запроса
-  console.log('POST тело:', ctx.request.body);
+// router.post('/', (ctx) => {
+//   // console.log('POST запрос на сервер от:', ctx.request.header.referer); // показать url источника запроса
+//   ctx.websocket.send('Hello World');
+//   console.log('POST тело:', ctx.request.body);
+//   console.log('POST тело ctx:', ctx);
 
-  if (ctx.request.body.type === 'message') {
-    ctx.response.body = dataBase.addData(ctx.request.body);
-    ctx.response.status = 200;
-  }
-});
+//   if (ctx.request.body.type === 'message') {
+//     ctx.response.body = dataBase.addData(ctx.request.body);
+//     ctx.response.status = 200;
+//   }
+// });
 
 module.exports = router;

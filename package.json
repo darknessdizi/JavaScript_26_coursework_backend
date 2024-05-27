@@ -20,9 +20,11 @@
     "koa-body": "^4.2.0",
     "koa-combine-routers": "^4.0.2",
     "koa-delay": "^0.0.2",
-    "koa-slow": "^2.1.0",
     "koa-router": "^10.0.0",
+    "koa-slow": "^2.1.0",
     "koa-static": "^5.0.0",
+    "koa-websocket": "^7.0.0",
+    "koa-ws": "^1.0.1",
     "uuid": "^8.3.2",
     "ws": "^7.4.2"
   },

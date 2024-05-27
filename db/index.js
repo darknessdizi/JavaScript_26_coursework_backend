@@ -11,10 +11,13 @@ const dataBase = {
         timestamp: Date.now(),
         ...obj,
       }
-      console.log('result', result);
       this.data.push(result);
       return result;
     }
+  },
+
+  getData() {
+    return this.data;
   },
 };
 
