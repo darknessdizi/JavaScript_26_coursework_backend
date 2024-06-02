@@ -14,7 +14,7 @@ const fs = require('fs');
 const { v4: uuidv4 } = require('uuid'); // импортируем v4 из uuid и переименовываем как uuidv4
 const { DataFiles } = require('./db');
 
-function sendAllUsers(message, sender) {
+function sendAllUsers(message) {
 	Array.from(wsServer.clients)
 		.filter((client) => client.readyState === WS.OPEN)
 		.forEach((client) => client.send(message));
@@ -74,7 +74,7 @@ router.post('/message', (ctx) => {
   }
 });
 
-router.post('/unload/video', async (ctx) => {
+router.post('/unload', async (ctx) => {
   const { body } = ctx.request;
   console.log('************* unload video *************', body);
   // console.dir(ctx.request.files);
@@ -82,56 +82,28 @@ router.post('/unload/video', async (ctx) => {
   console.log('file', file.name, file.type);
   const reader = fs.createReadStream(file.path); // Create-readable stream
   const ext = file.name.split('.').pop(); // Get upload the file extension
-  // let upStream = null;
-  // if (file.type === 'video/webm') {
-    const name = `record.${uuidv4()}.${ext}`;
-    const upStream = fs.createWriteStream(`public/${name}`);
-    body.content = {};
-    body.content.name = name;
-    body.content.originalName = file.name;
-    body.content.path = `/${name}`;
-    reader.pipe(upStream);
-  // }
-  // if (body.type === 'video') {
-    const obj = { 
-      status: 'addVideo',
-      result: dataBase.addData(body), 
-    };
-    ctx.response.status = 200;
-    sendAllUsers(JSON.stringify(obj))
-    // setTimeout(() => sendAllUsers(JSON.stringify(obj)), 100);
-    // поставил таймер с целью избежать Error: write ECONNABORTED
-  // }
-});
+  let nameFile = null;
+  const obj = {};
+  if (file.type === 'video/webm') {
+    nameFile = `record.${uuidv4()}.${ext}`;
+    obj.status = 'addVideo';
+  }
+  if (file.type === 'audio/wav') {
+    nameFile = `audio.${uuidv4()}.${ext}`;
+    obj.status = 'addAudio';
+  }
+  const upStream = fs.createWriteStream(`public/${nameFile}`);
 
-router.post('/unload/audio', async (ctx) => {
-  const { body } = ctx.request;
-  console.log('************* unload audio *************', body);
-  // console.dir(ctx.request.files);
-  const file = ctx.request.files.file; // Get upload files
-  console.log('file', file.name, file.type);
-  const reader = fs.createReadStream(file.path); // Create-readable stream
-  const ext = file.name.split('.').pop(); // Get upload the file extension
-  // let upStream = null;
-  // if (file.type === 'video/webm') {
-    const name = `audio.${uuidv4()}.${ext}`;
-    const upStream = fs.createWriteStream(`public/${name}`);
-    body.content = {};
-    body.content.name = name;
-    body.content.originalName = file.name;
-    body.content.path = `/${name}`;
-    reader.pipe(upStream);
-  // }
-  // if (body.type === 'video') {
-    const obj = { 
-      status: 'addAudio',
-      result: dataBase.addData(body), 
-    };
-    ctx.response.status = 200;
-    sendAllUsers(JSON.stringify(obj))
-    // setTimeout(() => sendAllUsers(JSON.stringify(obj)), 100);
-    // поставил таймер с целью избежать Error: write ECONNABORTED
-  // }
+  body.content = {};
+  body.content.name = nameFile;
+  body.content.originalName = file.name;
+  body.content.path = `/${nameFile}`;
+
+  obj.result = dataBase.addData(body);
+
+  reader.pipe(upStream);
+  ctx.response.status = 200;
+  sendAllUsers(JSON.stringify(obj))
 });
 
 wsServer.on('connection', (ws) => { // ws и есть сам клиент
