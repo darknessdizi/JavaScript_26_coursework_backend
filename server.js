@@ -15,9 +15,32 @@ const { v4: uuidv4 } = require('uuid'); // импортируем v4 из uuid �
 const { DataFiles } = require('./db');
 
 function sendAllUsers(message) {
+  // Отпрвка сообщений через WS всем подключенным клиентам
 	Array.from(wsServer.clients)
 		.filter((client) => client.readyState === WS.OPEN)
 		.forEach((client) => client.send(message));
+}
+
+function unLoadFile(file, body) {
+  // Добавление в базу данных файлов
+  const reader$ = fs.createReadStream(file.path); // Create-readable stream
+
+  const ext = file.name.split('.').pop(); // Get upload the file extension
+  const [ type ] = file.type.split('/'); // получаем первое значение из списка
+
+  const nameFile = `${type}.${uuidv4()}.${ext}`;
+  const upStream = fs.createWriteStream(`public/${nameFile}`);
+  reader$.pipe(upStream);
+
+  body.type = type;
+  body.content = {
+    name: nameFile,
+    originalName: file.name,
+    path: `/${nameFile}`,
+  };
+
+  const result = dataBase.addData(body)
+  return result;
 }
 
 const dataBase = new DataFiles();
@@ -62,49 +85,66 @@ const wsServer = new WS.Server({
 });
 
 router.post('/message', (ctx) => {
-  console.log('POST запрос на сервер от:', ctx.request.header.referer); // показать url источника запроса
+  console.log('POST запрос /message от:', ctx.request.header.referer); // показать url источника запроса
   console.log('POST тело:', ctx.request.body);
-  if (ctx.request.body.type === 'message') {
-    const obj = {
-      status: 'addMessage',
-      result: dataBase.addData(ctx.request.body),
-    };
-    ctx.response.status = 200;
-    sendAllUsers(JSON.stringify(obj));
-  }
-});
-
-router.post('/unload', async (ctx) => {
-  const { body } = ctx.request;
-  console.log('************* unload video *************', body);
-  // console.dir(ctx.request.files);
-  const file = ctx.request.files.file; // Get upload files
-  console.log('file', file.name, file.type);
-  const reader = fs.createReadStream(file.path); // Create-readable stream
-  const ext = file.name.split('.').pop(); // Get upload the file extension
-  let nameFile = null;
-  const obj = {};
-  if (file.type === 'video/webm') {
-    nameFile = `record.${uuidv4()}.${ext}`;
-    obj.status = 'addVideo';
-  }
-  if (file.type === 'audio/wav') {
-    nameFile = `audio.${uuidv4()}.${ext}`;
-    obj.status = 'addAudio';
-  }
-  const upStream = fs.createWriteStream(`public/${nameFile}`);
-
-  body.content = {};
-  body.content.name = nameFile;
-  body.content.originalName = file.name;
-  body.content.path = `/${nameFile}`;
-
-  obj.result = dataBase.addData(body);
-
-  reader.pipe(upStream);
+  const result = [];
+  const obj = dataBase.addData(ctx.request.body);
+  result.push(obj);
   ctx.response.status = 200;
-  sendAllUsers(JSON.stringify(obj))
+  sendAllUsers(JSON.stringify(result));
 });
+
+router.post('/unload', (ctx) => {
+  console.log('POST /unload тело:', ctx.request.body);
+  const { body } = ctx.request;
+  const { file } = ctx.request.files;
+
+  const result = [];
+  if (file.length) {
+    for (let i = 0; i < file.length; i += 1) {
+      const obj = unLoadFile(file[i], body);
+      result.push(obj);
+    }
+  } else {
+    const obj = unLoadFile(file, body);
+    result.push(obj);
+  }
+
+  ctx.response.status = 200;
+  sendAllUsers(JSON.stringify(result));
+});
+
+// router.post('/unload', async (ctx) => {
+//   const { body } = ctx.request;
+//   console.log('************* unload *************', body);
+//   console.dir(ctx.request.files);
+//   const file = ctx.request.files.file; // Get upload files
+//   console.log('name-file:', file.name, 'type-file:', file.type);
+//   const reader = fs.createReadStream(file.path); // Create-readable stream
+//   const ext = file.name.split('.').pop(); // Get upload the file extension
+//   let nameFile = null;
+//   const obj = {};
+//   if (file.type === 'video/webm') {
+//     nameFile = `record.${uuidv4()}.${ext}`;
+//     obj.status = 'addVideo';
+//   }
+//   if (file.type === 'audio/wav') {
+//     nameFile = `audio.${uuidv4()}.${ext}`;
+//     obj.status = 'addAudio';
+//   }
+//   const upStream = fs.createWriteStream(`public/${nameFile}`);
+
+//   body.content = {};
+//   body.content.name = nameFile;
+//   body.content.originalName = file.name;
+//   body.content.path = `/${nameFile}`;
+
+//   obj.result = dataBase.addData(body);
+
+//   reader.pipe(upStream);
+//   ctx.response.status = 200;
+//   sendAllUsers(JSON.stringify(obj))
+// });
 
 wsServer.on('connection', (ws) => { // ws и есть сам клиент
   console.log('Соединение с клиентом');

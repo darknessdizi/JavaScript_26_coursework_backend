@@ -7,7 +7,7 @@ class DataFiles {
   }
 
   init() {
-    // инициализация класса
+    // инициализация класса (проверка наличия или создания файла)
     fs.stat('./public/dataBase.json', (err) => {
       if (err === null) {
         console.log('File dataBase.json exists');
