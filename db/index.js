@@ -46,6 +46,7 @@ class DataFiles {
     let result = { type, cords, content };
     result.id = uuidv4();
     result.timestamp = Date.now();
+    result.favorite = false;
     this.data.push(result);
     this.saveFile(this.data); 
     return result;
@@ -56,6 +57,14 @@ class DataFiles {
     const body = { messages: data };
     const file = JSON.stringify(body, null, 2);
     fs.writeFileSync('./public/dataBase.json', file);
+  }
+
+  changeFavorite(id, favorite) {
+    // Замена статуса избранного сообщения
+    const index = this.data.findIndex((item) => item.id === id);
+    this.data[index].favorite = favorite;
+    this.saveFile(this.data);
+    return { id: id, favorite: favorite }
   }
 
   getData() { 

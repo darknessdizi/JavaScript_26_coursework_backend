@@ -7,9 +7,6 @@ const path = require('path');
 const Router = require('koa-router');
 const http = require('http');
 const WS = require('ws'); // сервер для WebSocket от клиентов
-// const delay = require('koa-delay'); // задержка ответа сервера delay(2, 3) 2 - до, 3 - после ответа
-// const slow = require('koa-slow'); // задержка ответа сервера
-// const websockify = require('koa-websocket');
 const fs = require('fs');
 const { v4: uuidv4 } = require('uuid'); // импортируем v4 из uuid и переименовываем как uuidv4
 const { DataFiles } = require('./db');
@@ -63,19 +60,12 @@ app.use( // задаем правила для политики CORS
     origin: '*',
     credentials: true,
     'Access-Control-Allow-Origin': true,
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH','DELETE'],
   }),
 );
 
 const router = new Router(); // создали роутер
 app.use(router.routes());
-
-// app.use(slow({
-//   delay: 4000, // задержка ответа сервера
-// }));
-
-// app.use(delay(2000)); // задержка ответа сервера
-
 // app.use(router()); // подключаем маршрутизатор
 
 const port = process.env.PORT || 9000;
@@ -85,13 +75,26 @@ const wsServer = new WS.Server({
 });
 
 router.post('/message', (ctx) => {
-  console.log('POST запрос /message от:', ctx.request.header.referer); // показать url источника запроса
-  console.log('POST тело:', ctx.request.body);
+  // console.log('POST запрос /message от:', ctx.request.header.referer); // показать url источника запроса
+  console.log('POST /message тело:', ctx.request.body);
   const result = [];
   const obj = dataBase.addData(ctx.request.body);
   result.push(obj);
   ctx.response.status = 200;
   sendAllUsers(JSON.stringify(result));
+});
+
+router.patch('/favorite/:id', (ctx) => {
+  console.log('PATCH /favorite тело:', ctx.request.body);
+  console.log('Параметры', ctx.params)
+  const { favorite } = JSON.parse(ctx.request.body);
+  const { id } = ctx.params;
+  const obj = {
+    status: 'changeFavorite',
+    result: dataBase.changeFavorite(id, favorite),
+  };
+  ctx.response.status = 200;
+  sendAllUsers(JSON.stringify(obj));
 });
 
 router.post('/unload', (ctx) => {
@@ -113,38 +116,6 @@ router.post('/unload', (ctx) => {
   ctx.response.status = 200;
   sendAllUsers(JSON.stringify(result));
 });
-
-// router.post('/unload', async (ctx) => {
-//   const { body } = ctx.request;
-//   console.log('************* unload *************', body);
-//   console.dir(ctx.request.files);
-//   const file = ctx.request.files.file; // Get upload files
-//   console.log('name-file:', file.name, 'type-file:', file.type);
-//   const reader = fs.createReadStream(file.path); // Create-readable stream
-//   const ext = file.name.split('.').pop(); // Get upload the file extension
-//   let nameFile = null;
-//   const obj = {};
-//   if (file.type === 'video/webm') {
-//     nameFile = `record.${uuidv4()}.${ext}`;
-//     obj.status = 'addVideo';
-//   }
-//   if (file.type === 'audio/wav') {
-//     nameFile = `audio.${uuidv4()}.${ext}`;
-//     obj.status = 'addAudio';
-//   }
-//   const upStream = fs.createWriteStream(`public/${nameFile}`);
-
-//   body.content = {};
-//   body.content.name = nameFile;
-//   body.content.originalName = file.name;
-//   body.content.path = `/${nameFile}`;
-
-//   obj.result = dataBase.addData(body);
-
-//   reader.pipe(upStream);
-//   ctx.response.status = 200;
-//   sendAllUsers(JSON.stringify(obj))
-// });
 
 wsServer.on('connection', (ws) => { // ws и есть сам клиент
   console.log('Соединение с клиентом');
