@@ -97,6 +97,17 @@ router.patch('/favorite/:id', (ctx) => {
   sendAllUsers(JSON.stringify(obj));
 });
 
+router.delete('/delete/:id', (ctx) => {
+  console.log('PATCH /delete Параметры', ctx.params)
+  const { id } = ctx.params;
+  const obj = {
+    status: 'deleteMessage',
+    result: dataBase.deleteData(id),
+  };
+  ctx.response.status = 200;
+  sendAllUsers(JSON.stringify(obj));
+});
+
 router.post('/unload', (ctx) => {
   console.log('POST /unload тело:', ctx.request.body);
   const { body } = ctx.request;

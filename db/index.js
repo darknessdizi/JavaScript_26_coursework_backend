@@ -52,19 +52,31 @@ class DataFiles {
     return result;
   }
 
-  saveFile(data = []) {
-    // Сохраняет изменения в файл
-    const body = { messages: data };
-    const file = JSON.stringify(body, null, 2);
-    fs.writeFileSync('./public/dataBase.json', file);
-  }
-
   changeFavorite(id, favorite) {
     // Замена статуса избранного сообщения
     const index = this.data.findIndex((item) => item.id === id);
     this.data[index].favorite = favorite;
     this.saveFile(this.data);
     return { id: id, favorite: favorite }
+  }
+
+  deleteData(id) {
+    // Удаляет данные из базы по id
+    const index = this.data.findIndex((item) => item.id === id);
+    const { path } = this.data[index].content;
+    fs.rm(path, () => {console.log('Файл удален', this.data[index].content.name)});
+    this.data.splice(index, 1);
+    this.saveFile(this.data);
+    // Добавить физическое удаление файла !!!!!!!!!!!!!!!!!!!!!!!!!!!
+    return { id };
+  }
+
+  saveFile(data = []) {
+    // Сохраняет изменения в файл
+    const body = { messages: data };
+    const file = JSON.stringify(body, null, 2);
+    // Перезаписываем файл:
+    fs.writeFileSync('./public/dataBase.json', file);
   }
 
   getData() { 
