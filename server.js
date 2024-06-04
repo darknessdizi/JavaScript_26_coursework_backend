@@ -19,33 +19,67 @@ function sendAllUsers(message) {
 }
 
 function unLoadFile(file, body) {
-  // Добавление в базу данных файлов
-  const reader$ = fs.createReadStream(file.path); // Create-readable stream
+  return new Promise((resolve) => {
+    const reader$ = fs.createReadStream(file.path); // Create-readable stream
+    const ext = file.name.split('.').pop(); // Get upload the file extension
+    const [ type ] = file.type.split('/'); // получаем первое значение из списка
 
-  const ext = file.name.split('.').pop(); // Get upload the file extension
-  const [ type ] = file.type.split('/'); // получаем первое значение из списка
+    const nameFile = `${type}.${uuidv4()}.${ext}`;
+    const upStream = fs.createWriteStream(`public/${nameFile}`);
+    reader$.pipe(upStream);
 
-  const nameFile = `${type}.${uuidv4()}.${ext}`;
-  const upStream = fs.createWriteStream(`public/${nameFile}`);
-  reader$.pipe(upStream);
+    upStream.addListener('close', () => {
+      console.log('Завершен поток +++++++upStream+++++++');
 
-  body.type = type;
-  body.content = {
-    name: nameFile,
-    originalName: file.name,
-    path: `/${nameFile}`,
-  };
+      body.type = type;
+      body.content = {
+        name: nameFile,
+        originalName: file.name,
+        path: `/${nameFile}`,
+      };
 
-  const result = dataBase.addData(body)
-  return result;
+      const result = dataBase.addData(body);
+      console.log('Боди уже добавлен и отправлен ответ клиенту ++++++++++');
+      resolve(result);
+    })
+  })
 }
+
+// function unLoadFile(file, body) {
+//   // Добавление в базу данных файлов
+//   const reader$ = fs.createReadStream(file.path); // Create-readable stream
+
+//   const ext = file.name.split('.').pop(); // Get upload the file extension
+//   const [ type ] = file.type.split('/'); // получаем первое значение из списка
+
+//   const nameFile = `${type}.${uuidv4()}.${ext}`;
+//   const upStream = fs.createWriteStream(`public/${nameFile}`);
+//   reader$.pipe(upStream);
+//   // reader$.addListener('close', () => {
+//   //   console.log('Завершен поток ++++++reader++++++++');
+//   // })
+//   upStream.addListener('close', () => {
+//     console.log('Завершен поток +++++++upStream+++++++');
+//   })
+
+//   body.type = type;
+//   body.content = {
+//     name: nameFile,
+//     originalName: file.name,
+//     path: `/${nameFile}`,
+//   };
+
+//   const result = dataBase.addData(body);
+//   console.log('Боди уже добавлен и отправлен ответ клиенту ++++++++++');
+//   return result;
+// }
 
 const dataBase = new DataFiles();
 dataBase.init();
 
 const app = new Koa();
 
-const public = path.join(__dirname, '/public');
+const public = path.join(__dirname, '/public/');
 app.use(koaStatic(public)); // Дает возможность раздавать файлы
 
 app.use(koaBody({ // чтобы обработать тело запроса
@@ -108,7 +142,7 @@ router.delete('/delete/:id', (ctx) => {
   sendAllUsers(JSON.stringify(obj));
 });
 
-router.post('/unload', (ctx) => {
+router.post('/unload', async (ctx) => {
   console.log('POST /unload тело:', ctx.request.body);
   const { body } = ctx.request;
   const { file } = ctx.request.files;
@@ -116,11 +150,11 @@ router.post('/unload', (ctx) => {
   const result = [];
   if (file.length) {
     for (let i = 0; i < file.length; i += 1) {
-      const obj = unLoadFile(file[i], body);
+      const obj = await unLoadFile(file[i], body);
       result.push(obj);
     }
   } else {
-    const obj = unLoadFile(file, body);
+    const obj = await unLoadFile(file, body);
     result.push(obj);
   }
 

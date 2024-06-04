@@ -15,8 +15,9 @@ class DataFiles {
         // file does not exist
         fs.open('./public/dataBase.json', 'w', (error) => {
           if (error) throw error;
+          fs.readFile('./public/dataBase.json', 'utf8', this.initFile.bind(this));
           console.log('File created');
-        }); 
+        });
       } else {
         console.log('Some other error: ', err.code);
       }
@@ -30,8 +31,9 @@ class DataFiles {
     if (error) { // если возникла ошибка
       return console.log(error);
     }
-    if (!fileData) { // если файл пустой, создать в нем структуру записей 
+    if (!fileData) { // если файл пустой, создать в нем структуру записей
       this.saveFile();
+      return null;
     }
     const json = JSON.parse(fileData);
     // /* eslint-disable-next-line */
@@ -64,7 +66,7 @@ class DataFiles {
     // Удаляет данные из базы по id
     const index = this.data.findIndex((item) => item.id === id);
     const { path } = this.data[index].content;
-    fs.rm(path, () => {console.log('Файл удален', this.data[index].content.name)});
+    // fs.rm(path, () => {console.log('Файл удален', this.data[index].content.name)});
     this.data.splice(index, 1);
     this.saveFile(this.data);
     // Добавить физическое удаление файла !!!!!!!!!!!!!!!!!!!!!!!!!!!
