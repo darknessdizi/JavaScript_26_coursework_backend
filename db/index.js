@@ -64,13 +64,21 @@ class DataFiles {
 
   deleteData(id) {
     // Удаляет данные из базы по id
-    const index = this.data.findIndex((item) => item.id === id);
-    const { path } = this.data[index].content;
-    // fs.rm(path, () => {console.log('Файл удален', this.data[index].content.name)});
-    this.data.splice(index, 1);
-    this.saveFile(this.data);
-    // Добавить физическое удаление файла !!!!!!!!!!!!!!!!!!!!!!!!!!!
-    return { id };
+    return new Promise((resolve, reject) => {
+      const index = this.data.findIndex((item) => item.id === id);
+      const { path } = this.data[index].content;
+      console.log('Файл ++++', path);
+      fs.unlink(`./public${path}`, (err) => {
+        if (err) {
+          console.log('Ошибка удаления файла:', err);
+          reject(err);
+        }
+        console.log('Файл', path, 'удален !!!');
+        this.data.splice(index, 1);
+        this.saveFile(this.data);
+        resolve({ id })
+      });
+    });
   }
 
   saveFile(data = []) {
