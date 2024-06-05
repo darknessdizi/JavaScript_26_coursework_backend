@@ -108,6 +108,7 @@ router.delete('/delete/:id', async (ctx) => {
     status: 'deleteMessage',
     result: await dataBase.deleteData(id),
   };
+  console.log("Удаление объекта", obj);
   ctx.response.status = 200;
   sendAllUsers(JSON.stringify(obj));
 });
