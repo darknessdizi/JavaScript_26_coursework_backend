@@ -18,7 +18,7 @@ function sendAllUsers(message) {
 		.forEach((client) => client.send(message));
 }
 
-function unLoadFile(file, body) {
+function upLoadFile(file, body) {
   return new Promise((resolve) => {
     const reader$ = fs.createReadStream(file.path); // Create-readable stream
     const ext = file.name.split('.').pop(); // Get upload the file extension
@@ -29,7 +29,7 @@ function unLoadFile(file, body) {
     reader$.pipe(upStream);
 
     upStream.addListener('close', () => {
-      console.log('Завершен поток +++++++upStream+++++++');
+      console.log('Завершен поток +++++++ upStream +++++++');
 
       body.type = type;
       body.content = {
@@ -39,40 +39,10 @@ function unLoadFile(file, body) {
       };
 
       const result = dataBase.addData(body);
-      console.log('Боди уже добавлен и отправлен ответ клиенту ++++++++++');
       resolve(result);
     })
   })
 }
-
-// function unLoadFile(file, body) {
-//   // Добавление в базу данных файлов
-//   const reader$ = fs.createReadStream(file.path); // Create-readable stream
-
-//   const ext = file.name.split('.').pop(); // Get upload the file extension
-//   const [ type ] = file.type.split('/'); // получаем первое значение из списка
-
-//   const nameFile = `${type}.${uuidv4()}.${ext}`;
-//   const upStream = fs.createWriteStream(`public/${nameFile}`);
-//   reader$.pipe(upStream);
-//   // reader$.addListener('close', () => {
-//   //   console.log('Завершен поток ++++++reader++++++++');
-//   // })
-//   upStream.addListener('close', () => {
-//     console.log('Завершен поток +++++++upStream+++++++');
-//   })
-
-//   body.type = type;
-//   body.content = {
-//     name: nameFile,
-//     originalName: file.name,
-//     path: `/${nameFile}`,
-//   };
-
-//   const result = dataBase.addData(body);
-//   console.log('Боди уже добавлен и отправлен ответ клиенту ++++++++++');
-//   return result;
-// }
 
 const dataBase = new DataFiles();
 dataBase.init();
@@ -142,19 +112,19 @@ router.delete('/delete/:id', async (ctx) => {
   sendAllUsers(JSON.stringify(obj));
 });
 
-router.post('/unload', async (ctx) => {
-  console.log('POST /unload тело:', ctx.request.body);
+router.post('/upload', async (ctx) => {
+  console.log('POST /upload тело:', ctx.request.body);
   const { body } = ctx.request;
   const { file } = ctx.request.files;
 
   const result = [];
   if (file.length) {
     for (let i = 0; i < file.length; i += 1) {
-      const obj = await unLoadFile(file[i], body);
+      const obj = await upLoadFile(file[i], body);
       result.push(obj);
     }
   } else {
-    const obj = await unLoadFile(file, body);
+    const obj = await upLoadFile(file, body);
     result.push(obj);
   }
 

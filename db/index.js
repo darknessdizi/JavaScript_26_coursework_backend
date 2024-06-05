@@ -66,17 +66,22 @@ class DataFiles {
     // Удаляет данные из базы по id
     return new Promise((resolve, reject) => {
       const index = this.data.findIndex((item) => item.id === id);
+      if (this.data[index].type === 'message') {
+        this.data.splice(index, 1);
+        this.saveFile(this.data);
+        resolve({ id });
+      }
       const { path } = this.data[index].content;
-      console.log('Файл ++++', path);
+      console.log('Удаляем файл:', path);
       fs.unlink(`./public${path}`, (err) => {
         if (err) {
           console.log('Ошибка удаления файла:', err);
           reject(err);
         }
-        console.log('Файл', path, 'удален !!!');
+        console.log('Файл', this.data[index].content.name, 'удален !!!');
         this.data.splice(index, 1);
         this.saveFile(this.data);
-        resolve({ id })
+        resolve({ id });
       });
     });
   }
