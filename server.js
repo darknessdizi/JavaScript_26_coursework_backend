@@ -88,6 +88,20 @@ router.post('/message', (ctx) => {
   sendAllUsers(JSON.stringify(result));
 });
 
+router.get('/all', (ctx) => {
+  console.log('GET /all:', ctx.request.header.referer);
+  const result = dataBase.getData();
+  ctx.response.status = 200;
+  ctx.response.body = result;
+});
+
+router.get('/favorites', (ctx) => {
+  console.log('GET /favorites:', ctx.request.header.referer);
+  const result = dataBase.getFavorites();
+  ctx.response.status = 200;
+  ctx.response.body = result;
+});
+
 router.patch('/favorite/:id', (ctx) => {
   console.log('PATCH /favorite тело:', ctx.request.body);
   console.log('Параметры', ctx.params)

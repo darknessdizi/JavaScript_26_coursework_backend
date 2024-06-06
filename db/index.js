@@ -97,6 +97,12 @@ class DataFiles {
     fs.writeFileSync('./public/dataBase.json', file);
   }
 
+  getFavorites() {
+    // Возвращает все сообщения со статусом избранные
+    const result = this.data.filter((item) => item.favorite === true);
+    return result;
+  }
+
   getData() { 
     return this.data;
   }
