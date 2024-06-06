@@ -103,7 +103,14 @@ class DataFiles {
     return result;
   }
 
-  getData() { 
+  getOneMessage(id) {
+    // Возвращает сообщение по номеру id
+    const result = this.data.find((item) => item.id === id);
+    return result;
+  }
+
+  getData() {
+    // Возвращает список всех сообщений
     return this.data;
   }
 }

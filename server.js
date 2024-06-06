@@ -79,8 +79,9 @@ const wsServer = new WS.Server({
 });
 
 router.post('/message', (ctx) => {
-  // console.log('POST запрос /message от:', ctx.request.header.referer); // показать url источника запроса
+  // Поступило новое текстовое сообщение (широковещательный ответ)
   console.log('POST /message тело:', ctx.request.body);
+  // console.log('POST запрос /message от:', ctx.request.header.referer); // показать url источника запроса
   const result = [];
   const obj = dataBase.addData(ctx.request.body);
   result.push(obj);
@@ -89,6 +90,7 @@ router.post('/message', (ctx) => {
 });
 
 router.get('/all', (ctx) => {
+  // Получить список всех сообщений (одиночный ответ)
   console.log('GET /all:', ctx.request.header.referer);
   const result = dataBase.getData();
   ctx.response.status = 200;
@@ -96,13 +98,24 @@ router.get('/all', (ctx) => {
 });
 
 router.get('/favorites', (ctx) => {
+  // Получить список всех избранных сообщений (одиночный ответ)
   console.log('GET /favorites:', ctx.request.header.referer);
   const result = dataBase.getFavorites();
   ctx.response.status = 200;
   ctx.response.body = result;
 });
 
+router.get('/favorite/:id', (ctx) => {
+  // Получить данные избранного сообщения (одиночный ответ)
+  console.log('GET /favorite:', ctx.params);
+  const { id } = ctx.params;
+  const result = dataBase.getOneMessage(id);
+  ctx.response.status = 200;
+  ctx.response.body = result;
+});
+
 router.patch('/favorite/:id', (ctx) => {
+  // Изменение статуса сообщения (широковещательный ответ)
   console.log('PATCH /favorite тело:', ctx.request.body);
   console.log('Параметры', ctx.params)
   const { favorite } = JSON.parse(ctx.request.body);
@@ -116,6 +129,7 @@ router.patch('/favorite/:id', (ctx) => {
 });
 
 router.delete('/delete/:id', async (ctx) => {
+  // Удаление сообщения (широковещательный ответ)
   console.log('PATCH /delete Параметры', ctx.params)
   const { id } = ctx.params;
   const obj = {
@@ -128,6 +142,7 @@ router.delete('/delete/:id', async (ctx) => {
 });
 
 router.post('/upload', async (ctx) => {
+  // Поступило сообщение с файлом (широковещательный ответ)
   console.log('POST /upload тело:', ctx.request.body);
   const { body } = ctx.request;
   const { file } = ctx.request.files;
