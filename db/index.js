@@ -66,13 +66,15 @@ class DataFiles {
     // Удаляет данные из базы по id
     return new Promise((resolve, reject) => {
       const index = this.data.findIndex((item) => item.id === id);
+      const { type } = this.data[index];
       console.log('Удаляем', id, 'index', index);
-      if (this.data[index].type === 'message') {
-        console.log('message content', this.data[index].content, 'удаляется');
+      if (type === 'message') {
+        const { content } = this.data[index];
+        console.log('message content', content, 'удаляется');
         this.data.splice(index, 1);
         this.saveFile(this.data);
         console.log('Удалено из БД и из файла json');
-        return resolve({ id });
+        return resolve({ id, type, content });
       }
       const { path } = this.data[index].content;
       console.log('Удаляем файл:', path);
@@ -81,10 +83,9 @@ class DataFiles {
           console.log('Ошибка удаления файла:', err);
           return reject(err);
         }
-        // console.log('Файл', this.data[index].content.name, 'удален !!!');
         this.data.splice(index, 1);
         this.saveFile(this.data);
-        return resolve({ id });
+        return resolve({ id, type });
       });
     });
   }
