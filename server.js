@@ -102,6 +102,15 @@ router.get('/all', (ctx) => {
   ctx.response.body = result;
 });
 
+router.get('/getMessage/:id', (ctx) => {
+  // Получить данные сообщения для загрузки файла (одиночный ответ)
+  console.log('GET /getMessage/:id', ctx.params);
+  const { id } = ctx.params;
+  const result = dataBase.getOneMessage(id);
+  ctx.response.status = 200;
+  ctx.response.body = result;
+});
+
 router.get('/favorites', (ctx) => {
   // Получить список всех избранных сообщений (одиночный ответ)
   console.log('GET /favorites:', ctx.request.header.referer);
@@ -112,7 +121,7 @@ router.get('/favorites', (ctx) => {
 
 router.get('/favorite/:id', (ctx) => {
   // Получить данные избранного сообщения (одиночный ответ)
-  console.log('GET /favorite:', ctx.params);
+  console.log('GET /favorite/:id', ctx.params);
   const { id } = ctx.params;
   const result = dataBase.getOneMessage(id);
   ctx.response.status = 200;
