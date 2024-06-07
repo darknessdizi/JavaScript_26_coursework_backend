@@ -67,10 +67,9 @@ class DataFiles {
     return new Promise((resolve, reject) => {
       const index = this.data.findIndex((item) => item.id === id);
       const { type } = this.data[index];
-      console.log('Удаляем', id, 'index', index);
+      console.log('Удаляем', id, 'index=', index);
       if (type === 'message') {
         const { content } = this.data[index];
-        console.log('message content', content, 'удаляется');
         this.data.splice(index, 1);
         this.saveFile(this.data);
         console.log('Удалено из БД и из файла json');

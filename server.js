@@ -22,7 +22,12 @@ function upLoadFile(file, body) {
   return new Promise((resolve) => {
     const reader$ = fs.createReadStream(file.path); // Create-readable stream
     const ext = file.name.split('.').pop(); // Get upload the file extension
-    const [ type ] = file.type.split('/'); // получаем первое значение из списка
+    let [ type ] = file.type.split('/'); // получаем первое значение из списка
+
+    const findType = ['audio', 'video', 'image'].includes(type);
+    if (!findType) {
+      type = 'files';
+    }
 
     const nameFile = `${type}.${uuidv4()}.${ext}`;
     const upStream = fs.createWriteStream(`public/${nameFile}`);
