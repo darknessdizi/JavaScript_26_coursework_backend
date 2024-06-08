@@ -34,8 +34,6 @@ function upLoadFile(file, body) {
     reader$.pipe(upStream);
 
     upStream.addListener('close', () => {
-      console.log('Завершен поток +++++++ upStream +++++++');
-
       body.type = type;
       body.content = {
         name: nameFile,
@@ -86,7 +84,6 @@ const wsServer = new WS.Server({
 router.post('/message', (ctx) => {
   // Поступило новое текстовое сообщение (широковещательный ответ)
   console.log('POST /message тело:', ctx.request.body);
-  // console.log('POST запрос /message от:', ctx.request.header.referer); // показать url источника запроса
   const result = [];
   const obj = dataBase.addData(ctx.request.body);
   result.push(obj);
@@ -150,7 +147,6 @@ router.delete('/delete/:id', async (ctx) => {
     status: 'deleteMessage',
     result: await dataBase.deleteData(id),
   };
-  console.log("Удаление объекта", obj);
   ctx.response.status = 200;
   sendAllUsers(JSON.stringify(obj));
 });
@@ -172,7 +168,6 @@ router.post('/upload', async (ctx) => {
     result.push(obj);
   }
 
-  console.log('Маршрут unload - сейчас будет ответ клиенту');
   ctx.response.status = 200;
   sendAllUsers(JSON.stringify(result));
 });
