@@ -66,29 +66,30 @@ class DataFiles {
     // Удаляет данные из базы по id
     return new Promise((resolve, reject) => {
       const index = this.data.findIndex((item) => item.id === id);
-      if (index) {
-        reject(new Error('Файл не найден'));
-      }
-      const { type } = this.data[index];
-      if (type === 'message') {
-        const { content } = this.data[index];
-        this.data.splice(index, 1);
-        DataFiles.saveFile(this.data);
-        console.log('Удалено из БД и из файла json');
-        resolve({ id, type, content });
-      }
-      const { path } = this.data[index].content;
-      fs.unlink(`./public${path}`, (err) => {
-        if (err) {
-          console.log('Ошибка удаления файла:', err);
-          reject(err);
-        }
-        if (id === this.data[index].id) {
+      if (index >= 0) {
+        const { type } = this.data[index];
+        if (type === 'message') {
+          const { content } = this.data[index];
           this.data.splice(index, 1);
           DataFiles.saveFile(this.data);
-          resolve({ id, type });
+          console.log('Удалено из БД и из файла json');
+          resolve({ id, type, content });
         }
-      });
+        const { path } = this.data[index].content;
+        fs.unlink(`./public${path}`, (err) => {
+          if (err) {
+            console.log('Ошибка удаления файла:', err);
+            reject(err);
+          }
+          if (id === this.data[index].id) {
+            this.data.splice(index, 1);
+            DataFiles.saveFile(this.data);
+            resolve({ id, type });
+          }
+        });
+      } else {
+        reject(new Error('Файл не найден'));
+      }
     });
   }
 
