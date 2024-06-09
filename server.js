@@ -82,7 +82,7 @@ const wsServer = new WS.Server({
 });
 
 router.post('/message', (ctx) => {
-  // Поступило новое текстовое сообщение (широковещательный ответ)
+  // Добавить новое текстовое сообщение (широковещательный ответ)
   console.log('POST /message тело:', ctx.request.body);
   const result = [];
   const obj = dataBase.addData(ctx.request.body);
@@ -100,7 +100,7 @@ router.get('/all', (ctx) => {
 });
 
 router.get('/getMessage/:id', (ctx) => {
-  // Получить данные сообщения для загрузки файла (одиночный ответ)
+  // Получить данные одного сообщения для загрузки файла (одиночный ответ)
   console.log('GET /getMessage/:id', ctx.params);
   const { id } = ctx.params;
   const result = dataBase.getOneMessage(id);
@@ -116,18 +116,9 @@ router.get('/favorites', (ctx) => {
   ctx.response.body = result;
 });
 
-router.get('/favorite/:id', (ctx) => {
-  // Получить данные избранного сообщения (одиночный ответ)
-  console.log('GET /favorite/:id', ctx.params);
-  const { id } = ctx.params;
-  const result = dataBase.getOneMessage(id);
-  ctx.response.status = 200;
-  ctx.response.body = result;
-});
-
-router.patch('/favorite/:id', (ctx) => {
+router.patch('/favorites/:id', (ctx) => {
   // Изменение статуса сообщения (широковещательный ответ)
-  console.log('PATCH /favorite тело:', ctx.request.body);
+  console.log('PATCH /favorites/:id тело:', ctx.request.body);
   console.log('Параметры', ctx.params);
   const { favorite } = JSON.parse(ctx.request.body);
   const { id } = ctx.params;
@@ -141,26 +132,32 @@ router.patch('/favorite/:id', (ctx) => {
 
 router.delete('/delete/:id', async (ctx) => {
   // Удаление сообщения (широковещательный ответ)
-  console.log('PATCH /delete Параметры', ctx.params);
+  console.log('DELETE /delete Параметры', ctx.params);
   const { id } = ctx.params;
-  const obj = {
-    status: 'deleteMessage',
-    result: await dataBase.deleteData(id),
-  };
-  ctx.response.status = 200;
-  sendAllUsers(JSON.stringify(obj));
+  try {
+    const obj = {
+      status: 'deleteMessage',
+      result: await dataBase.deleteData(id),
+    };
+    ctx.response.status = 200;
+    sendAllUsers(JSON.stringify(obj));
+  } catch(err) {
+    console.log('Ошибка', err);
+    ctx.response.status = 200;
+  }
 });
 
 router.post('/upload', async (ctx) => {
   // Поступило сообщение с файлом (широковещательный ответ)
   console.log('POST /upload тело:', ctx.request.body);
+  // console.log('POST /upload file:', ctx.request.files);
   const { body } = ctx.request;
   const { file } = ctx.request.files;
 
   const result = [];
   if (file.length) {
     for (let i = 0; i < file.length; i += 1) {
-      const obj = upLoadFile(file[i], body);
+      const obj = await upLoadFile(file[i], body);
       result.push(obj);
     }
   } else {
