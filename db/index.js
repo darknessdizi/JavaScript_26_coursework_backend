@@ -32,25 +32,25 @@ class DataFiles {
       return console.log(error);
     }
     if (!fileData) { // если файл пустой, создать в нем структуру записей
-      this.saveFile();
+      DataFiles.saveFile();
       return null;
     }
     const json = JSON.parse(fileData);
-    // /* eslint-disable-next-line */
+    /* eslint-disable-next-line */
     for (const obj of json.messages) {
       this.data.push(obj);
     }
     return null;
   }
 
-  addData({ type, cords, content } = {}, file = null) {
+  addData({ type, cords, content } = {}) {
     // Добавляем объект сообщения в общий список
-    let result = { type, cords, content };
+    const result = { type, cords, content };
     result.id = uuidv4();
     result.timestamp = Date.now();
     result.favorite = false;
     this.data.push(result);
-    this.saveFile(this.data); 
+    DataFiles.saveFile(this.data);
     return result;
   }
 
@@ -58,8 +58,8 @@ class DataFiles {
     // Замена статуса избранного сообщения
     const index = this.data.findIndex((item) => item.id === id);
     this.data[index].favorite = favorite;
-    this.saveFile(this.data);
-    return { id: id, favorite: favorite }
+    DataFiles.saveFile(this.data);
+    return { id, favorite };
   }
 
   deleteData(id) {
@@ -71,25 +71,25 @@ class DataFiles {
       if (type === 'message') {
         const { content } = this.data[index];
         this.data.splice(index, 1);
-        this.saveFile(this.data);
+        DataFiles.saveFile(this.data);
         console.log('Удалено из БД и из файла json');
-        return resolve({ id, type, content });
+        resolve({ id, type, content });
       }
       const { path } = this.data[index].content;
       console.log('Удаляем файл:', path);
       fs.unlink(`./public${path}`, (err) => {
         if (err) {
           console.log('Ошибка удаления файла:', err);
-          return reject(err);
+          reject(err);
         }
         this.data.splice(index, 1);
-        this.saveFile(this.data);
-        return resolve({ id, type });
+        DataFiles.saveFile(this.data);
+        resolve({ id, type });
       });
     });
   }
 
-  saveFile(data = []) {
+  static saveFile(data = []) {
     // Сохраняет изменения в файл
     const body = { messages: data };
     const file = JSON.stringify(body, null, 2);
@@ -116,5 +116,5 @@ class DataFiles {
 }
 
 module.exports = {
-  DataFiles, 
+  DataFiles,
 };

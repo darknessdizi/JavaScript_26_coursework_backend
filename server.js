@@ -14,15 +14,15 @@ const { DataFiles } = require('./db');
 function sendAllUsers(message) {
   // Отпрвка сообщений через WS всем подключенным клиентам
 	Array.from(wsServer.clients)
-		.filter((client) => client.readyState === WS.OPEN)
-		.forEach((client) => client.send(message));
+    .filter((client) => client.readyState === WS.OPEN)
+    .forEach((client) => client.send(message));
 }
 
 function upLoadFile(file, body) {
   return new Promise((resolve) => {
     const reader$ = fs.createReadStream(file.path); // Create-readable stream
     const ext = file.name.split('.').pop(); // Get upload the file extension
-    let [ type ] = file.type.split('/'); // получаем первое значение из списка
+    let [type] = file.type.split('/'); // получаем первое значение из списка
 
     const findType = ['audio', 'video', 'image'].includes(type);
     if (!findType) {
@@ -43,8 +43,8 @@ function upLoadFile(file, body) {
 
       const result = dataBase.addData(body);
       resolve(result);
-    })
-  })
+    });
+  });
 }
 
 const dataBase = new DataFiles();
@@ -52,8 +52,8 @@ dataBase.init();
 
 const app = new Koa();
 
-const public = path.join(__dirname, '/public/');
-app.use(koaStatic(public)); // Дает возможность раздавать файлы
+const upload = path.join(__dirname, '/public/');
+app.use(koaStatic(upload)); // Дает возможность раздавать файлы
 
 app.use(koaBody({ // чтобы обработать тело запроса
   // (обязательно объявить до Middleware где работаем с body)
@@ -67,7 +67,7 @@ app.use( // задаем правила для политики CORS
     origin: '*',
     credentials: true,
     'Access-Control-Allow-Origin': true,
-    allowMethods: ['GET', 'POST', 'PUT', 'PATCH','DELETE'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
   }),
 );
 
@@ -78,7 +78,7 @@ app.use(router.routes());
 const port = process.env.PORT || 9000;
 const server = http.createServer(app.callback());
 const wsServer = new WS.Server({
-  server
+  server,
 });
 
 router.post('/message', (ctx) => {
@@ -128,7 +128,7 @@ router.get('/favorite/:id', (ctx) => {
 router.patch('/favorite/:id', (ctx) => {
   // Изменение статуса сообщения (широковещательный ответ)
   console.log('PATCH /favorite тело:', ctx.request.body);
-  console.log('Параметры', ctx.params)
+  console.log('Параметры', ctx.params);
   const { favorite } = JSON.parse(ctx.request.body);
   const { id } = ctx.params;
   const obj = {
@@ -141,7 +141,7 @@ router.patch('/favorite/:id', (ctx) => {
 
 router.delete('/delete/:id', async (ctx) => {
   // Удаление сообщения (широковещательный ответ)
-  console.log('PATCH /delete Параметры', ctx.params)
+  console.log('PATCH /delete Параметры', ctx.params);
   const { id } = ctx.params;
   const obj = {
     status: 'deleteMessage',
@@ -160,7 +160,7 @@ router.post('/upload', async (ctx) => {
   const result = [];
   if (file.length) {
     for (let i = 0; i < file.length; i += 1) {
-      const obj = await upLoadFile(file[i], body);
+      const obj = upLoadFile(file[i], body);
       result.push(obj);
     }
   } else {
@@ -177,7 +177,7 @@ wsServer.on('connection', (ws) => { // ws и есть сам клиент
   ws.send(JSON.stringify({
     status: 'connection',
     result: dataBase.getData(),
-  }))
+  }));
 
   ws.on('close', (number) => {
     console.log('Соединение закрыто', number);
