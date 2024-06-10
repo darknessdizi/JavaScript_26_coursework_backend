@@ -74,19 +74,20 @@ class DataFiles {
           DataFiles.saveFile(this.data);
           console.log('Удалено из БД и из файла json');
           resolve({ id, type, content });
+        } else {
+          const { path } = this.data[index].content;
+          fs.unlink(`./public${path}`, (err) => {
+            if (err) {
+              console.log('Ошибка удаления файла:', err);
+              reject(err);
+            }
+            if (id === this.data[index].id) {
+              this.data.splice(index, 1);
+              DataFiles.saveFile(this.data);
+              resolve({ id, type });
+            } 
+          });
         }
-        const { path } = this.data[index].content;
-        fs.unlink(`./public${path}`, (err) => {
-          if (err) {
-            console.log('Ошибка удаления файла:', err);
-            reject(err);
-          }
-          if (id === this.data[index].id) {
-            this.data.splice(index, 1);
-            DataFiles.saveFile(this.data);
-            resolve({ id, type });
-          }
-        });
       } else {
         reject(new Error('Файл не найден'));
       }
