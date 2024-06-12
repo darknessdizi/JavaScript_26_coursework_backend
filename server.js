@@ -150,7 +150,7 @@ router.delete('/delete/:id', async (ctx) => {
 router.post('/upload', async (ctx) => {
   // Поступило сообщение с файлом (широковещательный ответ)
   console.log('POST /upload тело:', ctx.request.body);
-  console.log('POST /upload file:', ctx.request.files);
+  // console.log('POST /upload file:', ctx.request.files);
   const { body } = ctx.request;
   const { file } = ctx.request.files;
 
@@ -178,6 +178,12 @@ wsServer.on('connection', (ws) => { // ws и есть сам клиент
 
   ws.on('close', (number) => {
     console.log('Соединение закрыто', number);
+  });
+
+  ws.on('message', (obj) => {
+    const { echo } = JSON.parse(obj);
+    console.log('Получен эхо запрос', echo);
+    ws.send(JSON.stringify({ status: 'echo'}))
   });
 });
 
