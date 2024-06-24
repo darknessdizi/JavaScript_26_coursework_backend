@@ -47,6 +47,18 @@ function upLoadFile(file, body) {
   });
 }
 
+function loadFile(name) {
+  // Скачивание файла 
+  return new Promise((resolve) => {
+    fs.readFile(`public/${name}`, (error, data) => {
+      if (error) { // если возникла ошибка
+        return console.log(error);
+      }
+      resolve(data);
+    });
+  });
+}
+
 const dataBase = new DataFiles();
 dataBase.init();
 
@@ -61,15 +73,15 @@ app.use(koaBody({ // чтобы обработать тело запроса
   multipart: true, // если тело запроса закодировано через FormData
 }));
 
-// app.use(cors()); // задаем правила для политики CORS
-app.use( // задаем правила для политики CORS
-  cors({
-    origin: '*',
-    credentials: true,
-    'Access-Control-Allow-Origin': true,
-    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
-  }),
-);
+app.use(cors()); // задаем правила для политики CORS
+// app.use( // задаем правила для политики CORS
+//   cors({
+//     origin: '*',
+//     credentials: true,
+//     'Access-Control-Allow-Origin': true,
+//     allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+//   }),
+// );
 
 const router = new Router(); // создали роутер
 app.use(router.routes());
@@ -97,6 +109,15 @@ router.get('/all', (ctx) => {
   const result = dataBase.getData();
   ctx.response.status = 200;
   ctx.response.body = result;
+});
+
+router.get('/loadFile/:name', async (ctx) => {
+  // Отправка файла клиенту (одиночный ответ)
+  console.log('GET /load/:name', ctx.params);
+  const { name } = ctx.params;
+  const file = await loadFile(name);
+  ctx.response.status = 200;
+  ctx.response.body = file;
 });
 
 router.get('/getMessage/:id', (ctx) => {
@@ -183,7 +204,7 @@ wsServer.on('connection', (ws) => { // ws и есть сам клиент
   ws.on('message', (obj) => {
     const { echo } = JSON.parse(obj);
     console.log('Получен эхо запрос', echo);
-    ws.send(JSON.stringify({ status: 'echo'}))
+    ws.send(JSON.stringify({ status: 'echo'}));
   });
 });
 
